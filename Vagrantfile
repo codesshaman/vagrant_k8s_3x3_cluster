@@ -3,9 +3,39 @@
 
 IP = 9
 
-NUM_MASTERS = 3
-NUM_WORKERS = 3
+NUM_MASTERS = 2
+NUM_WORKERS = 2
 
+IP_ADDRESS = "10.10.10"
+
+MASTER_NAME = "master_of_puppets_"
+WORKER_NAME = "puppet_"
+
+MASTER_ALIAS = "master"
+WORKER_ALIAS = "worker"
+
+MASTERS_LIST = ""
+WORKERS_LIST = ""
+
+MASTERS_IP = ""
+WORKERS_IP = ""
+i = 0
+c = 9
+while i < NUM_MASTERS
+    c += 1
+    MASTERS_IP = MASTERS_IP + "#{IP_ADDRESS}.#{c}" + " "
+    i += 1
+    MASTERS_LIST = MASTERS_LIST + "#{MASTER_ALIAS}#{i}" + " "
+end
+puts MASTERS_IP
+i = 0
+while i < NUM_WORKERS
+    c += 1
+    WORKERS_IP = WORKERS_IP + "#{IP_ADDRESS}.#{c}" + " "
+    i += 1
+    WORKERS_LIST = WORKERS_LIST + "#{WORKER_ALIAS}#{i}" + " "
+end
+puts WORKERS_IP
 WORKER_PORT = 9090
 MASTER_PORT = 8080
 
@@ -29,18 +59,18 @@ Vagrant.configure('2') do |config|
             master.vm.hostname = "master#{n}"
             master.vm.network "forwarded_port",
             guest: MASTER_PORT + n, host: MASTER_PORT + n
-            master.vm.network 'private_network', ip: "10.10.10.#{IP}"
-            puts "master#{n} address: 10.10.10.#{IP}"
+            master.vm.network 'private_network', ip: "#{IP_ADDRESS}.#{IP}"
+            puts "master#{n} address: #{IP_ADDRESS}.#{IP}"
             master.vm.provider 'virtualbox' do |v|
-                v.name = "master_of_puppets_#{n}"
+                v.name = "#{MASTER_NAME}#{n}"
                 v.memory = MASTER_MEMORY
                 v.cpus = MASTER_CPU
             end
             master.vm.provision "copy ssh public key", type: "shell",
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            # master.vm.provision "shell", privileged: true,
-            # path: "slave_node_setup.sh",
-            # args: [MASTER_NODE_IP, WORKERS_IP]
+            master.vm.provision "shell", privileged: true,
+            path: "master_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
         end
     end
 
@@ -51,18 +81,18 @@ Vagrant.configure('2') do |config|
             worker.vm.hostname = "worker#{n}"
             worker.vm.network "forwarded_port",
             guest: WORKER_PORT + n, host: WORKER_PORT + n
-            worker.vm.network 'private_network', ip: "10.10.10.#{IP}"
-            puts "worker#{n} address: 10.10.10.#{IP}"
+            worker.vm.network 'private_network', ip: "#{IP_ADDRESS}.#{IP}"
+            puts "worker#{n} address: #{IP_ADDRESS}.#{IP}"
             worker.vm.provider 'virtualbox' do |v|
-                v.name = "puppet_#{n}"
+                v.name = "#{WORKER_NAME}#{n}"
                 v.memory = SLAVE_MEMORY
                 v.cpus = SLAVE_CPU
             end
             worker.vm.provision "copy ssh public key", type: "shell",
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            # worker.vm.provision "shell", privileged: true,
-            # path: "slave_node_setup.sh",
-            # args: [MASTER_NODE_IP, "10.10.10.10"]
+            worker.vm.provision "shell", privileged: true,
+            path: "worker_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
         end
     end
 end

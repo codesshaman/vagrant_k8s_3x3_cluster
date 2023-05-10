@@ -34,6 +34,30 @@ build:
 	@printf "$(OK_COLOR)==== Building configuration ${name}... ====$(NO_COLOR)\n"
 	@vagrant box add bento/debian-11 debian
 
+con10:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.10
+
+con11:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.11
+
+con12:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.12
+
+con13:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.13
+
+con14:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.14
+
+con15:
+	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
+	@ssh vagrant@10.10.10.15
+
 conm1:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
 	@ssh vagrant@10.10.10.10
