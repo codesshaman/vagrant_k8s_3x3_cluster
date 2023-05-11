@@ -27,7 +27,6 @@ while i < NUM_MASTERS
     i += 1
     MASTERS_LIST = MASTERS_LIST + "#{MASTER_ALIAS}#{i}" + " "
 end
-puts MASTERS_IP
 i = 0
 while i < NUM_WORKERS
     c += 1
@@ -35,7 +34,6 @@ while i < NUM_WORKERS
     i += 1
     WORKERS_LIST = WORKERS_LIST + "#{WORKER_ALIAS}#{i}" + " "
 end
-puts WORKERS_IP
 WORKER_PORT = 9090
 MASTER_PORT = 8080
 
