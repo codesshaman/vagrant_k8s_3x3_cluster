@@ -43,6 +43,30 @@ MASTER_MEMORY = "3072"
 SLAVE_CPU = "2"
 SLAVE_MEMORY = "2048"
 
+MAC_LIST_M = [
+    '080027b893a3',
+    '080027a20ad1',
+    '08002740d567',
+    '0800277489c4',
+    '0800278a6977',
+    '080027928568',
+    '08002705b7d3',
+    '080027b176c1',
+    '0800278bc27b'
+]
+
+MAC_LIST_W = [
+    '080027301f31',
+    '08002708fd26',
+    '080027a3e6a7',
+    '0800278b0c4c',
+    '080027836753',
+    '080027ec85cc',
+    '080027149319',
+    '08002778228d',
+    '080027598ca6'
+]
+
 # 10.10.0.2 – 10.255.255.255
 # 172.16.0.2 – 172.31.255.255
 # 192.168.0.0 – 192.168.255.255
@@ -57,9 +81,12 @@ Vagrant.configure('2') do |config|
             master.vm.hostname = "master#{n}"
             master.vm.network "forwarded_port",
             guest: MASTER_PORT + n, host: MASTER_PORT + n
-            master.vm.network 'private_network', ip: "#{IP_ADDRESS}.#{IP}"
+            master.vm.network 'private_network', 
+            ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
             puts "master#{n} address: #{IP_ADDRESS}.#{IP}"
             master.vm.provider 'virtualbox' do |v|
+                v.customize ["modifyvm", :id,
+                "--macaddress1", "#{MAC_LIST_M[n]}"]
                 v.name = "#{MASTER_NAME}#{n}"
                 v.memory = MASTER_MEMORY
                 v.cpus = MASTER_CPU
@@ -79,9 +106,12 @@ Vagrant.configure('2') do |config|
             worker.vm.hostname = "worker#{n}"
             worker.vm.network "forwarded_port",
             guest: WORKER_PORT + n, host: WORKER_PORT + n
-            worker.vm.network 'private_network', ip: "#{IP_ADDRESS}.#{IP}"
+            worker.vm.network 'private_network', 
+            ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
             puts "worker#{n} address: #{IP_ADDRESS}.#{IP}"
             worker.vm.provider 'virtualbox' do |v|
+                v.customize ["modifyvm", :id,
+                "--macaddress1", "#{MAC_LIST_W[n]}"]
                 v.name = "#{WORKER_NAME}#{n}"
                 v.memory = SLAVE_MEMORY
                 v.cpus = SLAVE_CPU

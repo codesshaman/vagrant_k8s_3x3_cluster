@@ -1,4 +1,20 @@
 #!/bin/bash
+no='\033[0m'		# Color Reset
+ok='\033[32;01m'    # Green Ok
+err='\033[31;01m'	# Error red
+warn='\033[1;33m'   # Yellow
+blue='\033[1;34m'   # Blue
+purp='\033[1;35m'   # Purple
+cyan='\033[1;36m'   # Cyan
+white='\033[1;37m'  # White
+# echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
+# apt-get update && \
+# apt-get install -y \
+#     wget \
+#     curl
+# echo -e "${warn}[k8s installer]${no} ${cyan}Смена mac-адреса сервера${no}"
+# macchanger -r --permanent eth0
+# echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
 str1=$2
 if [[ "${str1: -1}" = " " ]]; then
   str1="${str1%?}"
