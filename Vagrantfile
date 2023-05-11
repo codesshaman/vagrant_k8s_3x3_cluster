@@ -3,8 +3,8 @@
 
 IP = 9
 
-NUM_MASTERS = 2
-NUM_WORKERS = 2
+NUM_MASTERS = 1
+NUM_WORKERS = 1
 
 IP_ADDRESS = "10.10.10"
 
@@ -83,7 +83,11 @@ Vagrant.configure('2') do |config|
             guest: MASTER_PORT + n, host: MASTER_PORT + n
             master.vm.network 'private_network', 
             ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
-            puts "master#{n} address: #{IP_ADDRESS}.#{IP}"
+            master.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            master.vm.provision "shell",
+            privileged: true, path: "master_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
             master.vm.provider 'virtualbox' do |v|
                 v.customize ["modifyvm", :id,
                 "--macaddress1", "#{MAC_LIST_M[n]}"]
@@ -91,11 +95,6 @@ Vagrant.configure('2') do |config|
                 v.memory = MASTER_MEMORY
                 v.cpus = MASTER_CPU
             end
-            master.vm.provision "copy ssh public key", type: "shell",
-            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            master.vm.provision "shell", privileged: true,
-            path: "master_node_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
         end
     end
 
@@ -108,7 +107,11 @@ Vagrant.configure('2') do |config|
             guest: WORKER_PORT + n, host: WORKER_PORT + n
             worker.vm.network 'private_network', 
             ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
-            puts "worker#{n} address: #{IP_ADDRESS}.#{IP}"
+            worker.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            worker.vm.provision "shell", 
+            privileged: true, path: "worker_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP]
             worker.vm.provider 'virtualbox' do |v|
                 v.customize ["modifyvm", :id,
                 "--macaddress1", "#{MAC_LIST_W[n]}"]
@@ -116,11 +119,6 @@ Vagrant.configure('2') do |config|
                 v.memory = SLAVE_MEMORY
                 v.cpus = SLAVE_CPU
             end
-            worker.vm.provision "copy ssh public key", type: "shell",
-            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            worker.vm.provision "shell", privileged: true,
-            path: "worker_node_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
         end
     end
 end
