@@ -9,12 +9,18 @@ cyan='\033[1;36m'   # Cyan
 white='\033[1;37m'  # White
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
 # apt-get update && \
-# apt-get install -y \
-#     wget \
-#     curl
-# echo -e "${warn}[k8s installer]${no} ${cyan}Смена mac-адреса сервера${no}"
-# macchanger -r --permanent eth0
-# echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
+apt-get install -y \
+    wget \
+    curl \
+    tmux \
+    gnupg \
+    haproxy \
+    iptables \
+    keepalived
+echo -e "${warn}[k8s installer]${no} ${cyan}Смена mac-адреса сервера${no}"
+macchanger -r --permanent eth0
+echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
+echo "#!/bin/bash" >> /home/vagrant/ping.sh
 str1=$2
 if [[ "${str1: -1}" = " " ]]; then
   str1="${str1%?}"
@@ -37,6 +43,7 @@ mapfile -d' ' -t ipsm <<< "$str1"
 mapfile -d' ' -t ipsw <<< "$str2"
 mapfile -d' ' -t nmsm <<< "$strm"
 mapfile -d' ' -t nmsw <<< "$strw"
+echo -e "${warn}[k8s installer]${no} ${cyan}Создание /etc/hosts и ping.sh ${no}"
 count=0
 for ip in "${ipsm[@]}"
 do
@@ -79,3 +86,10 @@ echo "ping 8.8.8.8 -c 2" >> /home/vagrant/ping.sh
 echo "ping ya.ru -c 2" >> /home/vagrant/ping.sh
 chown vagrant:vagrant /home/vagrant/ping.sh
 chmod +x /home/vagrant/ping.sh
+echo -e "${warn}[k8s installer]${no} ${cyan}Создание check.sh ${no}"
+echo "#!/bin/bash" >> /home/vagrant/check.sh
+echo "hostname" >> /home/vagrant/check.sh
+echo "ip link | grep link/ether" >> /home/vagrant/check.sh
+echo "sudo dmidecode -s system-uuid" >> /home/vagrant/check.sh
+chown vagrant:vagrant /home/vagrant/check.sh
+chmod +x /home/vagrant/check.sh
