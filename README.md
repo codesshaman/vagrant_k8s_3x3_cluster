@@ -14,6 +14,8 @@ Download box bento/debian-11 for virtualbox from [vagrantup](https://app.vagrant
 mv ~/Downloads/a2a5f4df-eba7-4c0c-88e4-7ff6d02d5ada /path/to/project/debian
 ```
 
+Change memory and cpu settings if necessary in Vagrantfile. Change number of VMs if necessary.
+
 ### Step 2: Add box to vagrant
 
 For windows (in power shell):
