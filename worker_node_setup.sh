@@ -12,6 +12,7 @@ apt-get update -y && \
 apt-get install -y \
     wget \
     curl \
+    make \
     tmux \
     gnupg \
     haproxy \
