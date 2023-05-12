@@ -38,3 +38,12 @@ For linux/unix witn Make:
 
 ``make``
 
+### Step 3: Connect to the configuration
+
+For windows (in power shell):
+
+``ssh vagrant@10.10.10.10``
+
+For linux/unix witn Make:
+
+``make conm1``
