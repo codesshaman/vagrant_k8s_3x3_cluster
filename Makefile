@@ -16,7 +16,7 @@ UCYAN='\e[4;36m'        # Cyan
 
 all:
 	@printf "Launch configuration ${name}...\n"
-	@vagrant up --provider=virtualbox  
+	@vagrant up --provider=virtualbox
 
 help:
 	@echo -e "$(OK_COLOR)==== All commands of ${name} configuration ====$(NO_COLOR)"
