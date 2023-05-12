@@ -88,6 +88,9 @@ Vagrant.configure('2') do |config|
             master.vm.provision "shell",
             privileged: true, path: "master_node_setup.sh",
             args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
+            master.vm.provision "shell", inline: "sudo swapoff -a"
+            master.vm.provision "shell",
+            inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"
             master.vm.provider 'virtualbox' do |v|
                 v.customize ["modifyvm", :id,
                 "--macaddress1", "#{MAC_LIST_M[n]}"]
@@ -112,6 +115,9 @@ Vagrant.configure('2') do |config|
             worker.vm.provision "shell", 
             privileged: true, path: "worker_node_setup.sh",
             args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP]
+            worker.vm.provision "shell", inline: "sudo swapoff -a"
+            worker.vm.provision "shell",
+            inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"
             worker.vm.provider 'virtualbox' do |v|
                 v.customize ["modifyvm", :id,
                 "--macaddress1", "#{MAC_LIST_W[n]}"]
