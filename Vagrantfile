@@ -5,9 +5,9 @@
 IP = 9
 
 # Number of master nodes
-NUM_MASTERS = 2
+NUM_MASTERS = 3
 # Number of worker nodes
-NUM_WORKERS = 2
+NUM_WORKERS = 3
 
 # Range of ip addresses
 # Without last octet
