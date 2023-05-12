@@ -8,7 +8,7 @@ purp='\033[1;35m'   # Purple
 cyan='\033[1;36m'   # Cyan
 white='\033[1;37m'  # White
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
-# apt-get update && \
+apt-get update -y && \
 apt-get install -y \
     wget \
     curl \
