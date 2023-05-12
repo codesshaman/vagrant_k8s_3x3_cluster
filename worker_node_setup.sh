@@ -16,9 +16,13 @@ apt-get install -y \
     gnupg \
     haproxy \
     iptables \
-    keepalived
-echo -e "${warn}[k8s installer]${no} ${cyan}Смена mac-адреса сервера${no}"
-macchanger -r --permanent eth0
+    keepalived \
+    libnss3-tools
+echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
+curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+mv mkcert-v*-linux-amd64 mkcert
+chmod a+x mkcert
+mv mkcert /usr/local/bin/
 echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
 echo "#!/bin/bash" >> /home/vagrant/ping.sh
 str1=$2
@@ -94,7 +98,7 @@ echo 'echo "MAC-адрес (должен отличаться)"' >> /home/vagran
 echo "ip link | grep link/ether" >> /home/vagrant/check.sh
 echo 'echo "Идентификатор VM (должен отличаться)"' >> /home/vagrant/check.sh
 echo "sudo dmidecode -s system-uuid" >> /home/vagrant/check.sh
-echo 'echo "Адрес шлюза (должен быит одинаковым)"' >> /home/vagrant/check.sh
-echo "netstat -rn | grep "^0.0.0.0" | awk '{print $2}'" >> /home/vagrant/check.sh
+echo 'echo "Адрес шлюза (должен быть одинаковым)"' >> /home/vagrant/check.sh
+echo "netstat -rn | grep "^0.0.0.0" | awk '{print \$2}'" >> /home/vagrant/check.sh
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
