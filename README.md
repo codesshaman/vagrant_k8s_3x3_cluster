@@ -47,3 +47,8 @@ For windows (in power shell):
 For linux/unix witn Make:
 
 ``make conm1``
+
+### Step 4: (Re)
+
+### Step 5: Change user to root and upgrade system
+
