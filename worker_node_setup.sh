@@ -88,8 +88,13 @@ chown vagrant:vagrant /home/vagrant/ping.sh
 chmod +x /home/vagrant/ping.sh
 echo -e "${warn}[k8s installer]${no} ${cyan}Создание check.sh ${no}"
 echo "#!/bin/bash" >> /home/vagrant/check.sh
+echo 'echo "Имя хоста (должно отличаться)"' >> /home/vagrant/check.sh
 echo "hostname" >> /home/vagrant/check.sh
+echo 'echo "MAC-адрес (должен отличаться)"' >> /home/vagrant/check.sh
 echo "ip link | grep link/ether" >> /home/vagrant/check.sh
+echo 'echo "Идентификатор VM (должен отличаться)"' >> /home/vagrant/check.sh
 echo "sudo dmidecode -s system-uuid" >> /home/vagrant/check.sh
+echo 'echo "Адрес шлюза (должен быит одинаковым)"' >> /home/vagrant/check.sh
+echo "netstat -rn | grep "^0.0.0.0" | awk '{print $2}'" >> /home/vagrant/check.sh
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
