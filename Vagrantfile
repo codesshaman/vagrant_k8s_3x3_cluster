@@ -1,26 +1,44 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# First subnet ip number for range
 IP = 9
 
-NUM_MASTERS = 1
-NUM_WORKERS = 1
+# Number of master nodes
+NUM_MASTERS = 3
+# Number of worker nodes
+NUM_WORKERS = 3
 
+# Range of ip addresses
+# Without last octet
 IP_ADDRESS = "10.10.10"
+# All available ranges here
+# 10.10.0.2 – 10.255.255.255
+# 172.16.0.2 – 172.31.255.255
+# 192.168.0.0 – 192.168.255.255
+# (don't uncommit, for example only)
 
+# Name for the master nodes
 MASTER_NAME = "master_of_puppets_"
+# Name for the worker nodes
 WORKER_NAME = "puppet_"
 
+# Alias for the master nodes
 MASTER_ALIAS = "master"
+# Alias for the worker nodes
 WORKER_ALIAS = "worker"
 
+# Variables lists fot the
+# scripst (don't touch!)
 MASTERS_LIST = ""
 WORKERS_LIST = ""
-
 MASTERS_IP = ""
 WORKERS_IP = ""
+# Counters (don't touch!)
 i = 0
 c = 9
+# Variable creation
+# cycles (don't touch!)
 while i < NUM_MASTERS
     c += 1
     MASTERS_IP = MASTERS_IP + "#{IP_ADDRESS}.#{c}" + " "
@@ -34,15 +52,19 @@ while i < NUM_WORKERS
     i += 1
     WORKERS_LIST = WORKERS_LIST + "#{WORKER_ALIAS}#{i}" + " "
 end
+# First port from the range
+# For workers and masters
 WORKER_PORT = 9090
 MASTER_PORT = 8080
 
+# CPU and memory
 MASTER_CPU = "3"
 MASTER_MEMORY = "3072"
 
 SLAVE_CPU = "2"
 SLAVE_MEMORY = "2048"
 
+# Mac addresses
 MAC_LIST_M = [
     '080027b893a3',
     '080027a20ad1',
@@ -67,13 +89,12 @@ MAC_LIST_W = [
     '080027598ca6'
 ]
 
-# 10.10.0.2 – 10.255.255.255
-# 172.16.0.2 – 172.31.255.255
-# 192.168.0.0 – 192.168.255.255
-
+# Unix default ssh key folder
+# (create key with ssh-keygen)
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
 
 Vagrant.configure('2') do |config|
+    # Master nodes create cycle
     (1..NUM_MASTERS).each do |n|
         config.vm.define "master#{n}" do |master|
             IP += 1
@@ -100,7 +121,7 @@ Vagrant.configure('2') do |config|
             end
         end
     end
-
+    # Worker nodes create cycle
     (1..NUM_WORKERS).each do |n|
         config.vm.define "worker#{n}" do |worker|
             IP += 1
