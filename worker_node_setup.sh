@@ -11,7 +11,12 @@ echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходи�
 # apt-get update && \
 # apt-get install -y \
 #     wget \
-#     curl
+#     curl \
+#     tmux \
+#     gnupg \
+#     haproxy \
+#     iptables \
+#     keepalived
 # echo -e "${warn}[k8s installer]${no} ${cyan}Смена mac-адреса сервера${no}"
 # macchanger -r --permanent eth0
 # echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
