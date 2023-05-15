@@ -49,11 +49,10 @@ apt-get install -y \
     curl \
     make \
     tmux \
-    gnupg \
-    haproxy \
-    iptables \
-    keepalived \
+    python3-pip \
     libnss3-tools
+pip3 install ansible
+su - vagrant -c 'pip freeze >> /home/vagrant/requirements.txt'
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
 curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
 mv mkcert-v*-linux-amd64 mkcert
@@ -111,7 +110,7 @@ do
   echo "$display" >> /home/vagrant/ping.sh
   # Добавление данных в key_copy.sh
   echo "ssh-copy-id ${nmsm[count]}" >> /home/vagrant/key_copy.sh
- ((count++))
+  ((count++))
 done
 count=0
 for ip in "${ipsw[@]}"

@@ -92,9 +92,30 @@ MAC_LIST_W = [
 # Unix default ssh key folder
 # (create key with ssh-keygen)
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+Vagrant.configure("2") do |config|
+config.vm.define "kubespray" do |ansible|
+        ansible.vm.box = 'bento/debian-11.5'
+        ansible.vm.hostname = "kubespray"
+        ansible.vm.network 'private_network', 
+        ip: "#{IP_ADDRESS}.9", subnet: "255.255.255.0"
+        ansible.vm.provision "copy ssh public key", type: "shell",
+        inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+        ansible.vm.provision "shell",
+        privileged: true, path: "ansyble_cubespray.sh",
+        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
+        ansible.vm.provider 'virtualbox' do |v|
+            v.name = "kubespray"
+            v.memory = 1024
+            v.cpus = 2
+        end
+    end
+end
+
 
 Vagrant.configure('2') do |config|
-    # Master nodes create cycle
+    # ######################### #
+    # Master nodes create cycle #
+    # ######################### #
     (1..NUM_MASTERS).each do |n|
         config.vm.define "master#{n}" do |master|
             IP += 1
@@ -121,7 +142,9 @@ Vagrant.configure('2') do |config|
             end
         end
     end
-    # Worker nodes create cycle
+    # ######################### #
+    # Worker nodes create cycle #
+    # ######################### #
     (1..NUM_WORKERS).each do |n|
         config.vm.define "worker#{n}" do |worker|
             IP += 1
