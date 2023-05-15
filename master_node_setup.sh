@@ -7,9 +7,11 @@ blue='\033[1;34m'   # Blue
 purp='\033[1;35m'   # Purple
 cyan='\033[1;36m'   # Cyan
 white='\033[1;37m'  # White
+
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
 apt-get update -y && \
 apt-get install -y \
+    git \
     wget \
     curl \
     make \
@@ -105,3 +107,4 @@ netstat -rn | grep ^0.0.0.0 | awk '{print \$2}'
 _EOF_
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
+su - vagrant -c "git clone https://github.com/codesshaman/sshjet.git"
