@@ -11,6 +11,7 @@ echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходи�
 apt-get update -y && \
 apt-get install -y \
     git \
+    htop \
     wget \
     curl \
     make \
