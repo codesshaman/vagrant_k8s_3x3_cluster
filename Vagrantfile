@@ -1,17 +1,35 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+###########################
+## Network configuration ##
+###########################
+
+###########################
+######### Default #########
+# 10.10.10.9  - Kubespray #
+# 10.10.10.10 - Ingress   #
+# 10.10.10.11 - Master 1  #
+# 10.10.10.12 - Master 2  #
+# 10.10.10.13 - Master 3  #
+# 10.10.10.14 - Worker 1  #
+# 10.10.10.15 - Worker 2  #
+# 10.10.10.16 - Worker 3  #
+###########################
+
+# You can change ip here
+# (Range of ip addresses
+# Without last octet):
+IP_ADDRESS = "10.10.10"
+
 # First subnet ip number for range
-IP = 9
+IP = 10
 
 # Number of master nodes
 NUM_MASTERS = 3
 # Number of worker nodes
 NUM_WORKERS = 3
 
-# Range of ip addresses
-# Without last octet
-IP_ADDRESS = "10.10.10"
 # All available ranges here
 # 10.10.0.2 – 10.255.255.255
 # 172.16.0.2 – 172.31.255.255
@@ -36,7 +54,7 @@ MASTERS_IP = ""
 WORKERS_IP = ""
 # Counters (don't touch!)
 i = 0
-c = 9
+c = 10
 # Variable creation
 # cycles (don't touch!)
 while i < NUM_MASTERS
@@ -52,6 +70,9 @@ while i < NUM_WORKERS
     i += 1
     WORKERS_LIST = WORKERS_LIST + "#{WORKER_ALIAS}#{i}" + " "
 end
+# Ingress ip (don't touch!)
+INGRESS_NAME = "ingress"
+INGRESS_IP = "#{IP_ADDRESS}.#{IP}"
 # First port from the range
 # For workers and masters
 WORKER_PORT = 9090
@@ -92,6 +113,7 @@ MAC_LIST_W = [
 # Unix default ssh key folder
 # (create key with ssh-keygen)
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+# Create ansible with kubespray
 Vagrant.configure("2") do |config|
 config.vm.define "kubespray" do |ansible|
         ansible.vm.box = 'bento/debian-11.5'
@@ -102,7 +124,8 @@ config.vm.define "kubespray" do |ansible|
         inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
         ansible.vm.provision "shell",
         privileged: true, path: "ansyble_cubespray.sh",
-        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
+        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,
+        WORKERS_IP, INGRESS_NAME, INGRESS_IP]
         ansible.vm.provider 'virtualbox' do |v|
             v.name = "kubespray"
             v.memory = 1024
@@ -110,8 +133,27 @@ config.vm.define "kubespray" do |ansible|
         end
     end
 end
-
-
+# Create small ingress controller
+key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+Vagrant.configure("2") do |config|
+config.vm.define "ingress" do |ingress|
+        ingress.vm.box = 'bento/debian-11.5'
+        ingress.vm.hostname = "ingress"
+        ingress.vm.network 'private_network', 
+        ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
+        ingress.vm.provision "copy ssh public key", type: "shell",
+        inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+        ingress.vm.provision "shell",
+        privileged: true, path: "ingress_controller.sh",
+        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP, INGRESS_NAME, INGRESS_IP]
+        ingress.vm.provider 'virtualbox' do |v|
+            v.name = "ingress_controller"
+            v.memory = 1024
+            v.cpus = 1
+        end
+    end
+end
+# Masters and workers cycles
 Vagrant.configure('2') do |config|
     # ######################### #
     # Master nodes create cycle #
@@ -129,7 +171,8 @@ Vagrant.configure('2') do |config|
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
             master.vm.provision "shell",
             privileged: true, path: "master_node_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP]
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,WORKERS_IP,
+            INGRESS_NAME, INGRESS_IP]
             master.vm.provision "shell", inline: "sudo swapoff -a"
             master.vm.provision "shell",
             inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"
@@ -158,7 +201,8 @@ Vagrant.configure('2') do |config|
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
             worker.vm.provision "shell", 
             privileged: true, path: "worker_node_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP]
+            args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP,
+            INGRESS_NAME, INGRESS_IP]
             worker.vm.provision "shell", inline: "sudo swapoff -a"
             worker.vm.provision "shell",
             inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"

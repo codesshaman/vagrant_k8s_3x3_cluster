@@ -51,7 +51,7 @@ apt-get install -y \
     tmux \
     python3-pip \
     libnss3-tools
-pip3 install ansible
+# pip3 install ansible
 su - vagrant -c 'pip freeze >> /home/vagrant/requirements.txt'
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
 curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
@@ -133,6 +133,13 @@ do
   echo "ssh-copy-id ${nmsw[count]}" >> /home/vagrant/key_copy.sh
   ((count++))
 done
+# Добавление ingress-контроллера:
+str="${6} ${5} ${5}.loc"
+# disp=$(echo "$str" | tr '\n' '^' | tr -s " " | sed 's/\^//g')
+echo "$str" >> /etc/hosts
+echo "ping ${5} -c 2" >> /home/vagrant/ping.sh
+echo "ssh-copy-id ${5}" >> /home/vagrant/key_copy.sh
+# Добавление адресов для проверки доступа в интернет
 echo "ping 8.8.8.8 -c 2" >> /home/vagrant/ping.sh
 echo "ping ya.ru -c 2" >> /home/vagrant/ping.sh
 chown vagrant:vagrant /home/vagrant/ping.sh
@@ -151,3 +158,8 @@ netstat -rn | grep ^0.0.0.0 | awk '{print \$2}'
 _EOF_
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
+echo -e "${warn}[k8s installer]${no} ${cyan}Разрешаю логин под root${no}"
+sed -i 's!#PermitRootLogin prohibit-password!PermitRootLogin yes!g' /etc/ssh/sshd_config
+service sshd restart
+echo -e "${warn}[k8s installer]${no} ${cyan}Задаю пароль root${no}"
+echo "root:root" | chpasswd
