@@ -134,7 +134,6 @@ config.vm.define "kubespray" do |ansible|
     end
 end
 # Create small ingress controller
-key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
 Vagrant.configure("2") do |config|
 config.vm.define "ingress" do |ingress|
         ingress.vm.box = 'bento/debian-11.5'
