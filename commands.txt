@@ -1,0 +1,2 @@
+pip install -r requirements.txt
+ansible-playbook -i inventory/my_cluster/inventory.ini cluster.yml

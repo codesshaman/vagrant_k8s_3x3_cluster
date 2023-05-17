@@ -48,8 +48,7 @@ apt-get install -y \
     wget \
     curl \
     make \
-    tmux \
-    libnss3-tools
+    tmux
 su - vagrant -c 'pip freeze >> /home/vagrant/requirements.txt'
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
 curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
