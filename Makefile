@@ -27,6 +27,8 @@ help:
 	@echo -e "$(WARN_COLOR)- make ps			: View configuration"
 	@echo -e "$(WARN_COLOR)- make path			: Change path to vagrantboxes"
 	@echo -e "$(WARN_COLOR)- make re			: Restart configuration"
+	@echo -e "$(WARN_COLOR)- make re			: Restore from snapshot"
+	@echo -e "$(WARN_COLOR)- make snap			: Command for snapshot"
 	@echo -e "$(WARN_COLOR)- make clean			: Destroy configuration"
 	@echo -e "$(WARN_COLOR)- make  fclean			: Forced destroy all$(NO_COLOR)"
 
@@ -86,10 +88,6 @@ down:
 	@printf "$(ERROR_COLOR)==== Stopping configuration ${name}... ====$(NO_COLOR)\n"
 	@vagrant halt
 
-re:	down
-	@printf "$(OK_COLOR)==== Restart configuration ${name}... ====$(NO_COLOR)\n"
-	@vagrant up --provider=virtualbox
-
 ps:
 	@printf "$(BLUE)==== View configuration ${name}... ====$(NO_COLOR)\n"
 	@vagrant status
@@ -99,6 +97,22 @@ path:
 	@export VAGRANT_HOME=".vagrantboxes"
 	@mkdir .vagrantboxes
 	@printf "$(OK_COLOR)==== Pas has been changing ====$(NO_COLOR)\n"
+
+re:	down
+	@printf "$(OK_COLOR)==== Restart configuration ${name}... ====$(NO_COLOR)\n"
+	@vagrant up --provider=virtualbox
+
+rest:
+	@printf "$(YELLOW)==== Restore snapshot for ${name}... ====$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
+	@echo -e "$(YELLOW)and use this command manualy:$(NO_COLOR)\n"
+	@echo -e "$(OK_COLOR)vagrant snapshot go snapshot_name$(NO_COLOR)\n"
+
+snap:
+	@printf "$(YELLOW)==== Create snapshot for ${name}... ====$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
+	@echo -e "$(YELLOW)and use this command manualy:$(NO_COLOR)\n"
+	@echo -e "$(OK_COLOR)vagrant snapshot save snapshot_name$(NO_COLOR)\n"
 
 clean: down
 	@printf "$(ERROR_COLOR)==== Destroy configuration ${name}... ====$(NO_COLOR)\n"
