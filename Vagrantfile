@@ -17,6 +17,8 @@
 # 10.10.10.16 - Worker 3  #
 ###########################
 
+OS = 'bento/ubuntu-22.04'
+
 # You can change ip here
 # (Range of ip addresses
 # Without last octet):
@@ -79,8 +81,8 @@ WORKER_PORT = 9090
 MASTER_PORT = 8080
 
 # CPU and memory
-MASTER_CPU = "2"
-MASTER_MEMORY = "2048"
+MASTER_CPU = "3"
+MASTER_MEMORY = "4096"
 
 SLAVE_CPU = "3"
 SLAVE_MEMORY = "3072"
@@ -116,7 +118,7 @@ key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
 # Create ansible with kubespray
 Vagrant.configure("2") do |config|
 config.vm.define "kubespray" do |ansible|
-        ansible.vm.box = 'bento/debian-11.5'
+        ansible.vm.box = OS
         ansible.vm.hostname = "kubespray"
         ansible.vm.network 'private_network', 
         ip: "#{IP_ADDRESS}.9", subnet: "255.255.255.0"
@@ -136,7 +138,7 @@ end
 # Create small ingress controller
 Vagrant.configure("2") do |config|
 config.vm.define "ingress" do |ingress|
-        ingress.vm.box = 'bento/debian-11.5'
+        ingress.vm.box = OS
         ingress.vm.hostname = "ingress"
         ingress.vm.network 'private_network', 
         ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
@@ -160,7 +162,7 @@ Vagrant.configure('2') do |config|
     (1..NUM_MASTERS).each do |n|
         config.vm.define "master#{n}" do |master|
             IP += 1
-            master.vm.box = 'bento/debian-11.5'
+            master.vm.box = OS
             master.vm.hostname = "master#{n}"
             master.vm.network "forwarded_port",
             guest: MASTER_PORT + n, host: MASTER_PORT + n
@@ -190,7 +192,7 @@ Vagrant.configure('2') do |config|
     (1..NUM_WORKERS).each do |n|
         config.vm.define "worker#{n}" do |worker|
             IP += 1
-            worker.vm.box = 'bento/debian-11.5'
+            worker.vm.box = OS
             worker.vm.hostname = "worker#{n}"
             worker.vm.network "forwarded_port",
             guest: WORKER_PORT + n, host: WORKER_PORT + n
