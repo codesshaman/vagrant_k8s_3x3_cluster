@@ -34,7 +34,7 @@ help:
 
 build:
 	@printf "$(OK_COLOR)==== Building configuration ${name}... ====$(NO_COLOR)\n"
-	@vagrant box add bento/ubuntu-22.04 ubuntu
+	@vagrant box add bento/debian-11.5 debian
 
 con10:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"

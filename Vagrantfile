@@ -17,7 +17,7 @@
 # 10.10.10.16 - Worker 3  #
 ###########################
 
-OS = 'bento/ubuntu-22.04'
+OS = 'bento/debian-11.5'
 
 # You can change ip here
 # (Range of ip addresses
