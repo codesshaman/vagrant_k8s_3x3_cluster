@@ -48,13 +48,15 @@ apt-get install -y \
     wget \
     curl \
     make \
-    tmux
-echo -e "${warn}[k8s installer]${no} ${cyan}Установка etcd${no}"
-wget https://github.com/etcd-io/etcd/releases/download/v3.5.6/etcd-v3.5.6-linux-amd64.tar.gz
-tar xzvf etcd-v3.5.6-linux-amd64.tar.gz
-sudo mv etcd-v3.5.6-linux-amd64/etcd /usr/local/bin/
-rm -rf etcd-*
-etcd --version
+    tmux \
+    conntrack
+modprobe nf_conntrack_ipv4
+# echo -e "${warn}[k8s installer]${no} ${cyan}Установка etcd${no}"
+# wget https://github.com/etcd-io/etcd/releases/download/v3.5.6/etcd-v3.5.6-linux-amd64.tar.gz
+# tar xzvf etcd-v3.5.6-linux-amd64.tar.gz
+# sudo mv etcd-v3.5.6-linux-amd64/etcd /usr/local/bin/
+# rm -rf etcd-*
+# etcd --version
 echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
 curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
 mv mkcert-v*-linux-amd64 mkcert
