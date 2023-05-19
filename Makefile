@@ -105,14 +105,16 @@ re:	down
 rest:
 	@printf "$(YELLOW)==== Restore snapshot for ${name}... ====$(NO_COLOR)\n"
 	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
-	@echo -e "$(YELLOW)and use this command manualy:$(NO_COLOR)\n"
-	@echo -e "$(OK_COLOR)vagrant snapshot restore snapshot_name$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)and use this command manualy, example:$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)vagrant snapshot restore snapshot_name$(NO_COLOR)\n"
+	@echo -e "$(OK_COLOR)vagrant snapshot restore first_settings$(NO_COLOR)\n"
 
 snap:
 	@printf "$(YELLOW)==== Create snapshot for ${name}... ====$(NO_COLOR)\n"
 	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
-	@echo -e "$(YELLOW)and use this command manualy:$(NO_COLOR)\n"
-	@echo -e "$(OK_COLOR)vagrant snapshot save snapshot_name$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)and use this command manualy, example:$(NO_COLOR)\n"
+	@echo -e "$(YELLOW)vagrant snapshot save snapshot_name$(NO_COLOR)\n"
+	@echo -e "$(OK_COLOR)vagrant snapshot restore first_settings$(NO_COLOR)\n"
 
 clean: down
 	@printf "$(ERROR_COLOR)==== Destroy configuration ${name}... ====$(NO_COLOR)\n"
