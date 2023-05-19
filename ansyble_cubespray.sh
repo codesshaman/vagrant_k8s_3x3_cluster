@@ -53,11 +53,60 @@ apt-get install -y \
     libnss3-tools
 # pip3 install ansible
 su - vagrant -c 'pip freeze >> /home/vagrant/requirements.txt'
-echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
-curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
-mv mkcert-v*-linux-amd64 mkcert
-chmod a+x mkcert
-mv mkcert /usr/local/bin/
+
+echo -e "${warn}[k8s installer]${no} ${cyan}Скачивание kubespray${no}"
+git clone https://github.com/kubernetes-sigs/kubespray.git /root/kubespray
+cd /root/kubespray
+pip install -r requirements.txt
+git checkout release-2.21
+cp -rf inventory/sample inventory/my_cluster
+rm inventory/my_cluster/inventory.ini
+cat > /root/kubespray/inventory/my_cluster/inventory.ini << _EOF_
+[all]
+ingress ansible_host=10.10.10.10 ip=10.10.10.10 etcd_member_name=etcd0
+master1 ansible_host=10.10.10.11 ip=10.10.10.11 etcd_member_name=etcd1
+master2 ansible_host=10.10.10.12 ip=10.10.10.12 etcd_member_name=etcd2
+master3 ansible_host=10.10.10.13 ip=10.10.10.13 etcd_member_name=etcd3
+worker1 ansible_host=10.10.10.14 ip=10.10.10.14 etcd_member_name=etcd4
+worker2 ansible_host=10.10.10.15 ip=10.10.10.15 etcd_member_name=etcd5
+worker3 ansible_host=10.10.10.16 ip=10.10.10.16 etcd_member_name=etcd6
+
+[kube_control_plane]
+master1
+master2
+master3
+
+[etcd]
+master1
+master2
+master3
+
+[kube_node]
+worker1
+worker2
+worker3
+
+[kube-ingress]
+ingress
+
+[calico_rr]
+
+[k8s_cluster:children]
+kube_control_plane
+kube-ingress
+kube_node
+calico_rr
+_EOF_
+sed -i 's!helm_enabled: false!helm_enabled: true!1' \
+/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
+sed -i 's!registry_enabled: false!registry_enabled: true!1' \
+/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
+sed -i 's!metrics_server_enabled: false!metrics_server_enabled: true!1' \
+/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
+sed -i 's!local_volume_provisioner_enabled: false!local_volume_provisioner_enabled: true!1' \
+/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
+cd /root
+
 echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
 echo "#!/bin/bash" >> /home/vagrant/ping.sh
 str1=$2

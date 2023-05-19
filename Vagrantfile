@@ -115,7 +115,7 @@ MAC_LIST_W = [
 # Unix default ssh key folder
 # (create key with ssh-keygen)
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
-# Create ansible with kubespray
+# ### Create ansible with kubespray
 Vagrant.configure("2") do |config|
 config.vm.define "kubespray" do |ansible|
         ansible.vm.box = OS
