@@ -27,10 +27,14 @@ IP_ADDRESS = "10.10.10"
 # First subnet ip number for range
 IP = 10
 
-# Number of master nodes
+# Number of master nodes (1,3,5,7...)
 NUM_MASTERS = 3
-# Number of worker nodes
-NUM_WORKERS = 3
+# Number of worker nodes (1 and more)
+NUM_WORKERS = 2
+# Number of ingress (0-1!)
+NUM_INGRESSES = 0
+# Number of kubesprays (0-1!)
+NUM_KUBESPRAYS = 0
 
 # All available ranges here
 # 10.10.0.2 – 10.255.255.255
@@ -42,6 +46,10 @@ NUM_WORKERS = 3
 MASTER_NAME = "master_of_puppets_"
 # Name for the worker nodes
 WORKER_NAME = "puppet_"
+# Name for the ingres node
+INGRESS_NAME = "ingress"
+# Name for the kubespray node
+KUBESPRAY_NAME = "kubespray"
 
 # Alias for the master nodes
 MASTER_ALIAS = "master"
@@ -73,7 +81,6 @@ while i < NUM_WORKERS
     WORKERS_LIST = WORKERS_LIST + "#{WORKER_ALIAS}#{i}" + " "
 end
 # Ingress ip (don't touch!)
-INGRESS_NAME = "ingress"
 INGRESS_IP = "#{IP_ADDRESS}.#{IP}"
 # First port from the range
 # For workers and masters
@@ -117,40 +124,44 @@ MAC_LIST_W = [
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
 # ### Create ansible with kubespray
 Vagrant.configure("2") do |config|
-config.vm.define "kubespray" do |ansible|
-        ansible.vm.box = OS
-        ansible.vm.hostname = "kubespray"
-        ansible.vm.network 'private_network', 
-        ip: "#{IP_ADDRESS}.9", subnet: "255.255.255.0"
-        ansible.vm.provision "copy ssh public key", type: "shell",
-        inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-        ansible.vm.provision "shell",
-        privileged: true, path: "ansyble_cubespray.sh",
-        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,
-        WORKERS_IP, INGRESS_NAME, INGRESS_IP]
-        ansible.vm.provider 'virtualbox' do |v|
-            v.name = "kubespray"
-            v.memory = 1024
-            v.cpus = 2
+    (1..NUM_KUBESPRAYS).each do |n|
+        config.vm.define "kubespray" do |ansible|
+            ansible.vm.box = OS
+            ansible.vm.hostname = "kubespray"
+            ansible.vm.network 'private_network',
+            ip: "#{IP_ADDRESS}.9", subnet: "255.255.255.0"
+            ansible.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            ansible.vm.provision "shell",
+            privileged: true, path: "ansyble_cubespray.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,
+            WORKERS_IP, INGRESS_NAME, INGRESS_IP]
+            ansible.vm.provider 'virtualbox' do |v|
+                v.name = "#{KUBESPRAY_NAME}"
+                v.memory = 1024
+                v.cpus = 2
+            end
         end
     end
 end
 # Create small ingress controller
 Vagrant.configure("2") do |config|
-config.vm.define "ingress" do |ingress|
-        ingress.vm.box = OS
-        ingress.vm.hostname = "ingress"
-        ingress.vm.network 'private_network', 
-        ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
-        ingress.vm.provision "copy ssh public key", type: "shell",
-        inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-        ingress.vm.provision "shell",
-        privileged: true, path: "ingress_controller.sh",
-        args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP, INGRESS_NAME, INGRESS_IP]
-        ingress.vm.provider 'virtualbox' do |v|
-            v.name = "ingress_controller"
-            v.memory = 1024
-            v.cpus = 1
+    (1..NUM_INGRESSES).each do |n|
+        config.vm.define "ingress" do |ingress|
+            ingress.vm.box = OS
+            ingress.vm.hostname = "ingress"
+            ingress.vm.network 'private_network', 
+            ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
+            ingress.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            ingress.vm.provision "shell",
+            privileged: true, path: "ingress_controller.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP, INGRESS_NAME, INGRESS_IP]
+            ingress.vm.provider 'virtualbox' do |v|
+                v.name = "#{INGRESS_NAME}"
+                v.memory = 1024
+                v.cpus = 1
+            end
         end
     end
 end
