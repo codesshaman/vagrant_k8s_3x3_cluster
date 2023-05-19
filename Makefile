@@ -27,7 +27,7 @@ help:
 	@echo -e "$(WARN_COLOR)- make ps			: View configuration"
 	@echo -e "$(WARN_COLOR)- make path			: Change path to vagrantboxes"
 	@echo -e "$(WARN_COLOR)- make re			: Restart configuration"
-	@echo -e "$(WARN_COLOR)- make re			: Restore from snapshot"
+	@echo -e "$(WARN_COLOR)- make rest			: Restore from snapshot"
 	@echo -e "$(WARN_COLOR)- make snap			: Command for snapshot"
 	@echo -e "$(WARN_COLOR)- make clean			: Destroy configuration"
 	@echo -e "$(WARN_COLOR)- make  fclean			: Forced destroy all$(NO_COLOR)"
@@ -106,7 +106,7 @@ rest:
 	@printf "$(YELLOW)==== Restore snapshot for ${name}... ====$(NO_COLOR)\n"
 	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
 	@echo -e "$(YELLOW)and use this command manualy:$(NO_COLOR)\n"
-	@echo -e "$(OK_COLOR)vagrant snapshot go snapshot_name$(NO_COLOR)\n"
+	@echo -e "$(OK_COLOR)vagrant snapshot restore snapshot_name$(NO_COLOR)\n"
 
 snap:
 	@printf "$(YELLOW)==== Create snapshot for ${name}... ====$(NO_COLOR)\n"
