@@ -49,6 +49,7 @@ apt-get install -y \
     curl \
     make \
     tmux \
+    ethtool \
     conntrack
 modprobe nf_conntrack_ipv4
 # echo -e "${warn}[k8s installer]${no} ${cyan}Установка etcd${no}"

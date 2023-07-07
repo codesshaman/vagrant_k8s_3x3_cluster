@@ -49,6 +49,7 @@ apt-get install -y \
     curl \
     make \
     tmux \
+    ethtool \
     python3-pip \
     libnss3-tools
 # pip3 install ansible
