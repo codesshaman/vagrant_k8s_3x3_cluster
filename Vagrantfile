@@ -5,40 +5,42 @@
 ## Network configuration ##
 ###########################
 
-# All available ranges here
-# 10.10.0.2 – 10.255.255.255
-# 172.16.0.2 – 172.31.255.255
-# 192.168.0.0 – 192.168.255.255
-# (don't uncommit, for example only)
-
 ###########################
 ######### Default #########
-# 192.168.56.11 - master_1  #
-# 192.168.56.12 - master_2  #
-# 192.168.56.13 - worker_1  #
-# 192.168.56.14 - worker_2  #
-# 192.168.56.15 - worker_3  #
-# 192.168.56.16 - worker_4  #
+# 10.10.10.9  - Kubespray #
+# 10.10.10.10 - Ingress   #
+# 10.10.10.11 - Master 1  #
+# 10.10.10.12 - Master 2  #
+# 10.10.10.13 - Master 3  #
+# 10.10.10.14 - Worker 1  #
+# 10.10.10.15 - Worker 2  #
+# 10.10.10.16 - Worker 3  #
 ###########################
 
-OS = 'bento/centos-8'
+OS = 'bento/debian-11.5'
 
 # You can change ip here
 # (Range of ip addresses
 # Without last octet):
-IP_ADDRESS = "192.168.56"
+IP_ADDRESS = "10.10.10"
 
 # First subnet ip number for range
 IP = 10
 
 # Number of master nodes (1,3,5,7...)
-NUM_MASTERS = 1
+NUM_MASTERS = 3
 # Number of worker nodes (1 and more)
-NUM_WORKERS = 1
+NUM_WORKERS = 2
 # Number of ingress (0-1!)
 NUM_INGRESSES = 0
 # Number of kubesprays (0-1!)
 NUM_KUBESPRAYS = 0
+
+# All available ranges here
+# 10.10.0.2 – 10.255.255.255
+# 172.16.0.2 – 172.31.255.255
+# 192.168.0.0 – 192.168.255.255
+# (don't uncommit, for example only)
 
 # Name for the master nodes
 MASTER_NAME = "master_of_puppets_"
@@ -86,11 +88,11 @@ WORKER_PORT = 9090
 MASTER_PORT = 8080
 
 # CPU and memory
-MASTER_CPU = "4"
+MASTER_CPU = "3"
 MASTER_MEMORY = "4096"
 
-SLAVE_CPU = "4"
-SLAVE_MEMORY = "4096"
+SLAVE_CPU = "3"
+SLAVE_MEMORY = "3072"
 
 # Mac addresses
 MAC_LIST_M = [
@@ -120,6 +122,49 @@ MAC_LIST_W = [
 # Unix default ssh key folder
 # (create key with ssh-keygen)
 key = File.read("#{Dir.home}/.ssh/id_rsa.pub")
+# ### Create ansible with kubespray
+Vagrant.configure("2") do |config|
+    (1..NUM_KUBESPRAYS).each do |n|
+        config.vm.define "kubespray" do |ansible|
+            ansible.vm.box = OS
+            ansible.vm.hostname = "kubespray"
+            ansible.vm.network 'private_network',
+            ip: "#{IP_ADDRESS}.9", subnet: "255.255.255.0"
+            ansible.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            ansible.vm.provision "shell",
+            privileged: true, path: "ansyble_cubespray.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,
+            WORKERS_IP, INGRESS_NAME, INGRESS_IP]
+            ansible.vm.provider 'virtualbox' do |v|
+                v.name = "#{KUBESPRAY_NAME}"
+                v.memory = 1024
+                v.cpus = 2
+            end
+        end
+    end
+end
+# Create small ingress controller
+Vagrant.configure("2") do |config|
+    (1..NUM_INGRESSES).each do |n|
+        config.vm.define "ingress" do |ingress|
+            ingress.vm.box = OS
+            ingress.vm.hostname = "ingress"
+            ingress.vm.network 'private_network', 
+            ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
+            ingress.vm.provision "copy ssh public key", type: "shell",
+            inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
+            ingress.vm.provision "shell",
+            privileged: true, path: "ingress_controller.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST, WORKERS_IP, INGRESS_NAME, INGRESS_IP]
+            ingress.vm.provider 'virtualbox' do |v|
+                v.name = "#{INGRESS_NAME}"
+                v.memory = 1024
+                v.cpus = 1
+            end
+        end
+    end
+end
 # Masters and workers cycles
 Vagrant.configure('2') do |config|
     # ######################### #
@@ -136,8 +181,10 @@ Vagrant.configure('2') do |config|
             ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
             master.vm.provision "copy ssh public key", type: "shell",
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            master.vm.provision "shell", privileged: true, path: "master_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,WORKERS_IP]
+            master.vm.provision "shell",
+            privileged: true, path: "master_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP, WORKERS_LIST,WORKERS_IP,
+            INGRESS_NAME, INGRESS_IP]
             master.vm.provision "shell", inline: "sudo swapoff -a"
             master.vm.provision "shell",
             inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"
@@ -164,8 +211,10 @@ Vagrant.configure('2') do |config|
             ip: "#{IP_ADDRESS}.#{IP}", subnet: "255.255.255.0"
             worker.vm.provision "copy ssh public key", type: "shell",
             inline: "echo \"#{key}\" >> /home/vagrant/.ssh/authorized_keys"
-            worker.vm.provision "shell", privileged: true, path: "worker_setup.sh",
-            args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP]
+            worker.vm.provision "shell", 
+            privileged: true, path: "worker_node_setup.sh",
+            args: [MASTERS_LIST, MASTERS_IP,WORKERS_LIST, WORKERS_IP,
+            INGRESS_NAME, INGRESS_IP]
             worker.vm.provision "shell", inline: "sudo swapoff -a"
             worker.vm.provision "shell",
             inline: "sed -i 's!/dev/mapper/debian--11--vg-swap!#/dev/mapper/debian--11--vg-swap!1' /etc/fstab"
