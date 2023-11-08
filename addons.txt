@@ -1,4 +1,0 @@
-helm_enabled: true
-registry_enabled: true
-metrics_server_enabled: true
-ingress_nginx_enabled: true

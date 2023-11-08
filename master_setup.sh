@@ -40,22 +40,19 @@ sudo systemctl enable --now node_exporter
 sudo systemctl status node_exporter
 echo -e "${ok}Node exporter has been setup succefully!${no}"
 
-echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Установка необходимого софта${no}"
 apt-get update -y && \
 apt-get install -y \
-    git \
     htop \
     wget \
     curl \
-    make \
-    tmux \
-    ethtool
-echo -e "${warn}[k8s installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
-curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+    make
+echo -e "${warn}[greenplum installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
+curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
 mv mkcert-v*-linux-amd64 mkcert
 chmod a+x mkcert
 mv mkcert /usr/local/bin/
-echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
 echo "#!/bin/bash" >> /home/vagrant/ping.sh
 str1=$2
 if [[ "${str1: -1}" = " " ]]; then
@@ -79,15 +76,20 @@ mapfile -d' ' -t ipsm <<< "$str1"
 mapfile -d' ' -t ipsw <<< "$str2"
 mapfile -d' ' -t nmsm <<< "$strm"
 mapfile -d' ' -t nmsw <<< "$strw"
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание key_copy.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание key_copy.sh ${no}"
 cat > /home/vagrant/key_copy.sh << _EOF_
 #!/bin/bash
 ssh-keygen
 
+
 _EOF_
 chown vagrant:vagrant /home/vagrant/key_copy.sh
 chmod +x /home/vagrant/key_copy.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание /etc/hosts и ping.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание /etc/hosts и ping.sh ${no}"
+
+echo "[GreenPlum] : disable selinux..."
+sed -i 's!SELINUX=permissive!SELINUX=disabled!g' /etc/selinux/config
+
 count=0
 for ip in "${ipsm[@]}"
 do
@@ -107,7 +109,7 @@ do
   echo "$display" >> /home/vagrant/ping.sh
   # Добавление данных в key_copy.sh
   echo "ssh-copy-id ${nmsm[count]}" >> /home/vagrant/key_copy.sh
-  ((count++))
+ ((count++))
 done
 count=0
 for ip in "${ipsw[@]}"
@@ -130,18 +132,12 @@ do
   echo "ssh-copy-id ${nmsw[count]}" >> /home/vagrant/key_copy.sh
   ((count++))
 done
-# Добавление ingress-контроллера:
-str="${6} ${5} ${5}.loc"
-# disp=$(echo "$str" | tr '\n' '^' | tr -s " " | sed 's/\^//g')
-echo "$str" >> /etc/hosts
-echo "ping ${5} -c 2" >> /home/vagrant/ping.sh
-echo "ssh-copy-id ${5}" >> /home/vagrant/key_copy.sh
 # Добавление адресов для проверки доступа в интернет
 echo "ping 8.8.8.8 -c 2" >> /home/vagrant/ping.sh
 echo "ping ya.ru -c 2" >> /home/vagrant/ping.sh
 chown vagrant:vagrant /home/vagrant/ping.sh
 chmod +x /home/vagrant/ping.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание check.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание check.sh ${no}"
 cat > /home/vagrant/check.sh << _EOF_
 #!/bin/bash
 echo "Имя хоста (должно отличаться)"
@@ -155,8 +151,8 @@ netstat -rn | grep ^0.0.0.0 | awk '{print \$2}'
 _EOF_
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Разрешаю логин под root${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Разрешаю логин под root${no}"
 sed -i 's!#PermitRootLogin prohibit-password!PermitRootLogin yes!g' /etc/ssh/sshd_config
 service sshd restart
-echo -e "${warn}[k8s installer]${no} ${cyan}Задаю пароль root${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Задаю пароль root${no}"
 echo "root:root" | chpasswd

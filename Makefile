@@ -1,4 +1,4 @@
-name = k8s cluster
+name = CentOS 8
 
 NO_COLOR=\033[0m		# Color Reset
 COLOR_OFF='\e[0m'       # Color Off
@@ -26,67 +26,50 @@ help:
 	@echo -e "$(WARN_COLOR)- make down			: Stopping configuration"
 	@echo -e "$(WARN_COLOR)- make ps			: View configuration"
 	@echo -e "$(WARN_COLOR)- make path			: Change path to vagrantboxes"
+	@echo -e "$(WARN_COLOR)- make push			: Push changes to repository"
 	@echo -e "$(WARN_COLOR)- make re			: Restart configuration"
-	@echo -e "$(WARN_COLOR)- make rest			: Restore from snapshot"
-	@echo -e "$(WARN_COLOR)- make snap			: Command for snapshot"
 	@echo -e "$(WARN_COLOR)- make clean			: Destroy configuration"
 	@echo -e "$(WARN_COLOR)- make  fclean			: Forced destroy all$(NO_COLOR)"
 
 build:
 	@printf "$(OK_COLOR)==== Building configuration ${name}... ====$(NO_COLOR)\n"
-	@vagrant box add bento/debian-11.5 debian
+	@vagrant box add bento/centos-8 centos
 
-con10:
+connect:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.10
+	@ssh vagrant@192.168.56.11
 
 con11:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.11
+	@ssh vagrant@192.168.56.11
 
 con12:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.12
+	@ssh vagrant@192.168.56.12
 
 con13:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.13
+	@ssh vagrant@192.168.56.13
 
 con14:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.14
+	@ssh vagrant@192.168.56.14
 
 con15:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.15
+	@ssh vagrant@192.168.56.15
 
-conm1:
+con16:
 	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.10
-
-conm2:
-	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.11
-
-conm3:
-	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.12
-
-conw1:
-	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.13
-
-conw2:
-	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.14
-
-conw3:
-	@printf "$(OK_COLOR)==== Connecting to virtual machine ${name}... ====$(NO_COLOR)\n"
-	@ssh vagrant@10.10.10.15
+	@ssh vagrant@192.168.56.16
 
 down:
 	@printf "$(ERROR_COLOR)==== Stopping configuration ${name}... ====$(NO_COLOR)\n"
 	@vagrant halt
+
+re:	down
+	@printf "$(OK_COLOR)==== Restart configuration ${name}... ====$(NO_COLOR)\n"
+	@vagrant up --provider=virtualbox
 
 ps:
 	@printf "$(BLUE)==== View configuration ${name}... ====$(NO_COLOR)\n"
@@ -98,23 +81,8 @@ path:
 	@mkdir .vagrantboxes
 	@printf "$(OK_COLOR)==== Pas has been changing ====$(NO_COLOR)\n"
 
-re:	down
-	@printf "$(OK_COLOR)==== Restart configuration ${name}... ====$(NO_COLOR)\n"
-	@vagrant up --provider=virtualbox
-
-rest:
-	@printf "$(YELLOW)==== Restore snapshot for ${name}... ====$(NO_COLOR)\n"
-	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
-	@echo -e "$(YELLOW)and use this command manualy, example:$(NO_COLOR)\n"
-	@echo -e "$(YELLOW)vagrant snapshot restore snapshot_name$(NO_COLOR)\n"
-	@echo -e "$(OK_COLOR)vagrant snapshot restore first_settings$(NO_COLOR)\n"
-
-snap:
-	@printf "$(YELLOW)==== Create snapshot for ${name}... ====$(NO_COLOR)\n"
-	@echo -e "$(YELLOW)Please, stop the machines (make down):$(NO_COLOR)"
-	@echo -e "$(YELLOW)and use this command manualy, example:$(NO_COLOR)\n"
-	@echo -e "$(YELLOW)vagrant snapshot save snapshot_name$(NO_COLOR)\n"
-	@echo -e "$(OK_COLOR)vagrant snapshot save first_settings$(NO_COLOR)\n"
+push:
+	@bash ./push.sh
 
 clean: down
 	@printf "$(ERROR_COLOR)==== Destroy configuration ${name}... ====$(NO_COLOR)\n"

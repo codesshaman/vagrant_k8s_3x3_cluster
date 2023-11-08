@@ -8,6 +8,10 @@ purp='\033[1;35m'   # Purple
 cyan='\033[1;36m'   # Cyan
 white='\033[1;37m'  # White
 
+##############################################################
+#                         METRICS                            #
+##############################################################
+
 echo -e "${warn}[Node Exporter]${no} : ${cyan}Загрузка...${no}"
 wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
 echo -e "${warn}[Node Exporter]${no} : ${ok}...успешно загружено${no}"
@@ -40,75 +44,33 @@ sudo systemctl enable --now node_exporter
 sudo systemctl status node_exporter
 echo -e "${ok}Node exporter has been setup succefully!${no}"
 
-echo -e "${warn}[k8s installer]${no} ${cyan}Установка необходимого софта${no}"
-apt-get update -y && \
-apt-get install -y \
-    git \
+##############################################################
+#                           SOFT                             #
+##############################################################
+
+echo "[yum] : add repositories..."
+sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+yum update -y
+
+echo "[yum] : install utillites..."
+yum install -y yum-utils \
     htop \
     wget \
     curl \
-    make \
-    tmux \
-    ethtool \
-    python3-pip \
-    libnss3-tools
-# pip3 install ansible
-su - vagrant -c 'pip freeze >> /home/vagrant/requirements.txt'
+    make
 
-echo -e "${warn}[k8s installer]${no} ${cyan}Скачивание kubespray${no}"
-git clone https://github.com/kubernetes-sigs/kubespray.git /root/kubespray
-cd /root/kubespray
-pip install -r requirements.txt
-git checkout release-2.21
-cp -rf inventory/sample inventory/my_cluster
-rm inventory/my_cluster/inventory.ini
-cat > /root/kubespray/inventory/my_cluster/inventory.ini << _EOF_
-[all]
-ingress ansible_host=10.10.10.10 ip=10.10.10.10 etcd_member_name=etcd0
-master1 ansible_host=10.10.10.11 ip=10.10.10.11 etcd_member_name=etcd1
-master2 ansible_host=10.10.10.12 ip=10.10.10.12 etcd_member_name=etcd2
-master3 ansible_host=10.10.10.13 ip=10.10.10.13 etcd_member_name=etcd3
-worker1 ansible_host=10.10.10.14 ip=10.10.10.14 etcd_member_name=etcd4
-worker2 ansible_host=10.10.10.15 ip=10.10.10.15 etcd_member_name=etcd5
-worker3 ansible_host=10.10.10.16 ip=10.10.10.16 etcd_member_name=etcd6
+echo -e "${warn}[greenplum installer]${no} ${cyan}Установка mkcert для самоподписных сертификатов${no}"
+curl -s https://api.github.com/repos/FiloSottile/mkcert/releases/latest| grep browser_download_url  | grep linux-amd64 | cut -d '"' -f 4 | wget -qi -
+mv mkcert-v*-linux-amd64 mkcert
+chmod a+x mkcert
+mv mkcert /usr/local/bin/
 
-[kube_control_plane]
-master1
-master2
-master3
+##############################################################
+#                           HOSTS                            #
+##############################################################
 
-[etcd]
-master1
-master2
-master3
-
-[kube_node]
-worker1
-worker2
-worker3
-
-[kube-ingress]
-ingress
-
-[calico_rr]
-
-[k8s_cluster:children]
-kube_control_plane
-kube-ingress
-kube_node
-calico_rr
-_EOF_
-sed -i 's!helm_enabled: false!helm_enabled: true!1' \
-/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
-sed -i 's!registry_enabled: false!registry_enabled: true!1' \
-/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
-sed -i 's!metrics_server_enabled: false!metrics_server_enabled: true!1' \
-/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
-sed -i 's!local_volume_provisioner_enabled: false!local_volume_provisioner_enabled: true!1' \
-/root/kubespray/inventory/my_cluster/group_vars/k8s_cluster/addons.yml
-cd /root
-
-echo -e "${warn}[k8s installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Добавление серверов в hosts-файлы${no}"
 echo "#!/bin/bash" >> /home/vagrant/ping.sh
 str1=$2
 if [[ "${str1: -1}" = " " ]]; then
@@ -132,7 +94,7 @@ mapfile -d' ' -t ipsm <<< "$str1"
 mapfile -d' ' -t ipsw <<< "$str2"
 mapfile -d' ' -t nmsm <<< "$strm"
 mapfile -d' ' -t nmsw <<< "$strw"
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание key_copy.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание key_copy.sh ${no}"
 cat > /home/vagrant/key_copy.sh << _EOF_
 #!/bin/bash
 ssh-keygen
@@ -140,7 +102,11 @@ ssh-keygen
 _EOF_
 chown vagrant:vagrant /home/vagrant/key_copy.sh
 chmod +x /home/vagrant/key_copy.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание /etc/hosts и ping.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание /etc/hosts и ping.sh ${no}"
+
+echo "[GreenPlum] : disable selinux..."
+sed -i 's!SELINUX=permissive!SELINUX=disabled!g' /etc/selinux/config
+
 count=0
 for ip in "${ipsm[@]}"
 do
@@ -183,18 +149,12 @@ do
   echo "ssh-copy-id ${nmsw[count]}" >> /home/vagrant/key_copy.sh
   ((count++))
 done
-# Добавление ingress-контроллера:
-str="${6} ${5} ${5}.loc"
-# disp=$(echo "$str" | tr '\n' '^' | tr -s " " | sed 's/\^//g')
-echo "$str" >> /etc/hosts
-echo "ping ${5} -c 2" >> /home/vagrant/ping.sh
-echo "ssh-copy-id ${5}" >> /home/vagrant/key_copy.sh
 # Добавление адресов для проверки доступа в интернет
 echo "ping 8.8.8.8 -c 2" >> /home/vagrant/ping.sh
 echo "ping ya.ru -c 2" >> /home/vagrant/ping.sh
 chown vagrant:vagrant /home/vagrant/ping.sh
 chmod +x /home/vagrant/ping.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Создание check.sh ${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Создание check.sh ${no}"
 cat > /home/vagrant/check.sh << _EOF_
 #!/bin/bash
 echo "Имя хоста (должно отличаться)"
@@ -208,8 +168,8 @@ netstat -rn | grep ^0.0.0.0 | awk '{print \$2}'
 _EOF_
 chown vagrant:vagrant /home/vagrant/check.sh
 chmod +x /home/vagrant/check.sh
-echo -e "${warn}[k8s installer]${no} ${cyan}Разрешаю логин под root${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Разрешаю логин под root${no}"
 sed -i 's!#PermitRootLogin prohibit-password!PermitRootLogin yes!g' /etc/ssh/sshd_config
 service sshd restart
-echo -e "${warn}[k8s installer]${no} ${cyan}Задаю пароль root${no}"
+echo -e "${warn}[greenplum installer]${no} ${cyan}Задаю пароль root${no}"
 echo "root:root" | chpasswd
